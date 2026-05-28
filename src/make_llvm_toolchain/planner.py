@@ -484,6 +484,7 @@ def _runtime_default_defines(config: BuildConfig, profile_key: str, host_install
         defines["LLVM_PATH"] = str(config.source_dir / "llvm")
     if profile.requires_sysroot and not profile.full_build:
         defines["CMAKE_SYSROOT"] = str(_runtime_sysroot_path(config, profile_key))
+        defines["CMAKE_TRY_COMPILE_TARGET_TYPE"] = "STATIC_LIBRARY"
     if profile.uses_libcxx:
         defines.update(_libcxx_runtime_defines())
     if profile.full_build:

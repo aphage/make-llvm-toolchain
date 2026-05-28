@@ -16,6 +16,7 @@ on:
           - glibc+libc++
           - musl+libstdc++
           - musl+libc++
+          - llvm-libc+libc++
         default: 'glibc+libstdc++'
       build_type:
         description: 'CMAKE_BUILD_TYPE'

@@ -70,6 +70,7 @@ class PlannerTests(unittest.TestCase):
         assert configure.command is not None
         self.assertEqual(sysroot_step.metadata["root_path"], "/tmp/cache/sysroots/musl-libcxx")
         self.assertIn("-DCMAKE_SYSROOT=/tmp/cache/sysroots/musl-libcxx", configure.command)
+        self.assertIn("-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY", configure.command)
 
     def test_glibc_libcxx_runtime_flags_are_emitted(self) -> None:
         plan = build_plan(self.make_config(runtime_profiles=("glibc+libc++",)))
@@ -82,6 +83,7 @@ class PlannerTests(unittest.TestCase):
         self.assertIn("-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF", configure.command)
         self.assertIn("-DCMAKE_C_COMPILER=/tmp/install/host-tools/bin/clang", configure.command)
         self.assertIn("-DCMAKE_SYSROOT=/tmp/cache/sysroots/glibc-libcxx", configure.command)
+        self.assertIn("-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY", configure.command)
         self.assertIn("-DCOMPILER_RT_CXX_LIBRARY=libcxx", configure.command)
         self.assertIn("-DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON", configure.command)
         self.assertIn("-DCOMPILER_RT_USE_LLVM_UNWINDER=ON", configure.command)
@@ -101,6 +103,7 @@ class PlannerTests(unittest.TestCase):
             configure.command,
         )
         self.assertIn("-DCMAKE_SYSROOT=/opt/sysroots/musl", configure.command)
+        self.assertIn("-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY", configure.command)
         self.assertIn("-DCOMPILER_RT_CXX_LIBRARY=libcxx", configure.command)
         self.assertIn("-DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON", configure.command)
         self.assertIn("-DCOMPILER_RT_USE_LLVM_UNWINDER=ON", configure.command)
