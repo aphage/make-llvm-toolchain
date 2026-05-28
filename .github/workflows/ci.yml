@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run unit tests
+        run: python3 -m unittest discover -s tests -v
+
+  smoke-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Smoke-test plan generation
+        run: |
+          python3 -m make_llvm_toolchain plan \
+            --source-dir /tmp/llvm-project \
+            --project clang \
+            --project lld \
+            --runtime glibc+libc++ \
+            --linux-version 6.12.32 \
+            --glibc-version 2.39 \
+            --musl-version 1.2.5 \
+            --skip-source-download || true
+
+          python3 -c "
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, '${{ github.workspace }}/src')
+          from make_llvm_toolchain.planner import BuildConfig, build_plan
+          plan = build_plan(BuildConfig(
+              source_dir=Path('/tmp/llvm-project'),
+              build_root=Path('/tmp/build'),
+              install_root=Path('/tmp/install'),
+              cache_root=Path('/tmp/cache'),
+              projects=('clang', 'lld'),
+              runtime_profiles=('glibc-libcxx',),
+              linux_version='6.12.32',
+              glibc_version='2.39',
+              musl_version='1.2.5',
+          ))
+          assert len(plan.steps) >= 5, f'Expected >=5 steps, got {len(plan.steps)}'
+          steps_by_kind = {s.kind for s in plan.steps}
+          assert 'sysroot' in steps_by_kind, 'Missing sysroot step'
+          assert 'command' in steps_by_kind, 'Missing build command step'
+          assert 'wrappers' in steps_by_kind, 'Missing wrappers step'
+          print(f'OK: plan generated with {len(plan.steps)} steps')
+          "

@@ -1,0 +1,132 @@
+name: Build Toolchain
+
+on:
+  workflow_dispatch:
+    inputs:
+      llvm_version:
+        description: 'LLVM version to build'
+        required: false
+        default: '22.1.6'
+      profile:
+        description: 'Runtime profile'
+        required: false
+        type: choice
+        options:
+          - glibc+libstdc++
+          - glibc+libc++
+          - musl+libstdc++
+          - musl+libc++
+        default: 'glibc+libstdc++'
+      build_type:
+        description: 'CMAKE_BUILD_TYPE'
+        required: false
+        type: choice
+        options:
+          - Release
+          - MinSizeRel
+        default: 'Release'
+
+jobs:
+  build:
+    name: Build ${{ inputs.profile }} (LLVM ${{ inputs.llvm_version }}, ${{ inputs.build_type }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout make-llvm-toolchain
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake ninja-build gcc g++ make curl
+          cmake --version
+          ninja --version
+          gcc --version
+
+      - name: Check available disk space
+        run: |
+          echo "=== Disk space before clone ==="
+          df -h .
+          echo "=== Memory ==="
+          free -h
+
+      - name: Clone llvm-project
+        run: |
+          git clone --depth 1 --branch llvmorg-${{ inputs.llvm_version }} --single-branch \
+            https://github.com/llvm/llvm-project.git llvm-src
+          echo "=== Disk space after clone ==="
+          df -h .
+
+      - name: Print plan (dry run check)
+        run: |
+          ./bin/make-llvm-toolchain plan \
+            --source-dir llvm-src \
+            --build-root build \
+            --install-root toolchains \
+            --project clang \
+            --project lld \
+            --runtime ${{ inputs.profile }} \
+            --targets-to-build X86 \
+            --build-type ${{ inputs.build_type }} \
+            --linux-version 6.12.32 \
+            --glibc-version 2.39 \
+            --libstdcxx-version 14.2.0 \
+            --musl-version 1.2.5 \
+            --cmake-define LLVM_INCLUDE_TESTS=OFF \
+            --cmake-define LLVM_INCLUDE_BENCHMARKS=OFF \
+            --cmake-define LLVM_INCLUDE_EXAMPLES=OFF \
+            --cmake-define LLVM_INCLUDE_DOCS=OFF
+
+      - name: Build toolchain
+        run: |
+          ./bin/make-llvm-toolchain build \
+            --source-dir llvm-src \
+            --build-root build \
+            --install-root toolchains \
+            --project clang \
+            --project lld \
+            --runtime ${{ inputs.profile }} \
+            --targets-to-build X86 \
+            --jobs "$(nproc)" \
+            --build-type ${{ inputs.build_type }} \
+            --linux-version 6.12.32 \
+            --glibc-version 2.39 \
+            --libstdcxx-version 14.2.0 \
+            --musl-version 1.2.5 \
+            --cmake-define LLVM_INCLUDE_TESTS=OFF \
+            --cmake-define LLVM_INCLUDE_BENCHMARKS=OFF \
+            --cmake-define LLVM_INCLUDE_EXAMPLES=OFF \
+            --cmake-define LLVM_INCLUDE_DOCS=OFF \
+            --verbose
+        timeout-minutes: 300
+
+      - name: Show build results
+        run: |
+          echo "=== Host toolchain binaries ==="
+          ls -lah toolchains/host-tools/bin/ | head -40
+          echo ""
+          echo "=== Profile wrappers ==="
+          find toolchains/profiles -type f \( -executable -o -name "*.json" \) | sort | while read f; do
+            echo "$f ($(stat --printf='%s' "$f") bytes)"
+          done
+          echo ""
+          echo "=== Disk space after build ==="
+          df -h .
+          echo ""
+          echo "=== Verify host clang ==="
+          toolchains/host-tools/bin/clang --version || true
+
+      - name: Upload toolchain artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: llvm-toolchain-${{ inputs.profile }}-${{ inputs.llvm_version }}
+          path: toolchains/
+          retention-days: 3
+          compression-level: 6
+          overwrite: true

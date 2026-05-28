@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "make-llvm-toolchain"
+version = "0.1.0"
+description = "Plan and build LLVM host tools with selectable runtime profiles"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+
+[project.scripts]
+make-llvm-toolchain = "make_llvm_toolchain.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
