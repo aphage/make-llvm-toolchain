@@ -401,6 +401,7 @@ def _libcxx_runtime_defines() -> dict[str, str]:
         "COMPILER_RT_USE_BUILTINS_LIBRARY": "ON",
         "COMPILER_RT_USE_LLVM_UNWINDER": "ON",
         "LIBUNWIND_USE_COMPILER_RT": "ON",
+        "COMPILER_RT_DEFAULT_TARGET_ONLY": "ON",
     }
 
 
