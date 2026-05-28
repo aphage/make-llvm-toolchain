@@ -259,13 +259,24 @@ def _sysroot_build_workspace(config: BuildConfig, profile_key: str) -> Path:
     return config.cache_root / "sysroot-builds" / profile_key
 
 
-def _validate_component_versions(config: BuildConfig) -> None:
-    versions = {
-        "--linux-version": config.linux_version,
-        "--glibc-version": config.glibc_version,
-        "--libstdcxx-version": config.libstdcxx_version,
-        "--musl-version": config.musl_version,
-    }
+def _validate_component_versions(
+    config: BuildConfig, runtime_profiles: tuple[str, ...]
+) -> None:
+    profiles = set(runtime_profiles)
+    versions: dict[str, str | None] = {}
+    c_libraries = {RUNTIME_PROFILES[p].c_library for p in profiles}
+    cpp_libraries = {RUNTIME_PROFILES[p].cpp_library for p in profiles}
+    requires_sysroot = any(RUNTIME_PROFILES[p].requires_sysroot for p in profiles)
+
+    if requires_sysroot:
+        versions["--linux-version"] = config.linux_version
+    if "glibc" in c_libraries:
+        versions["--glibc-version"] = config.glibc_version
+    if "musl" in c_libraries:
+        versions["--musl-version"] = config.musl_version
+    if "libstdc++" in cpp_libraries:
+        versions["--libstdcxx-version"] = config.libstdcxx_version
+
     invalid = [name for name, value in versions.items() if value is None or not value.strip()]
     if invalid:
         raise PlannerError(f"Version arguments must not be empty: {', '.join(invalid)}.")
@@ -279,7 +290,7 @@ def _resolve_config(config: BuildConfig) -> BuildConfig:
             raise PlannerError(
                 "The llvm-libc + libc++ profile requires clang in --project selection."
             )
-    _validate_component_versions(config)
+    _validate_component_versions(config, runtime_profiles)
 
     sysroots = _normalize_profile_path_map(config.sysroots)
     gcc_toolchains = _normalize_profile_path_map(config.gcc_toolchains)

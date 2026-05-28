@@ -16,6 +16,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install package
+        run: pip install .
+
       - name: Run unit tests
         run: python3 -m unittest discover -s tests -v
 
@@ -27,6 +30,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Install package
+        run: pip install .
 
       - name: Smoke-test plan generation
         run: |
