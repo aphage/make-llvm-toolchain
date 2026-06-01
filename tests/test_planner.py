@@ -88,6 +88,15 @@ class PlannerTests(unittest.TestCase):
         self.assertIn("-DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON", configure.command)
         self.assertIn("-DCOMPILER_RT_USE_LLVM_UNWINDER=ON", configure.command)
         self.assertIn("-DLIBUNWIND_USE_COMPILER_RT=ON", configure.command)
+        self.assertIn("-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_SANITIZERS=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_MEMPROF=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_CTX_PROFILE=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_PROFILE=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_LIBFUZZER=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_ORC=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_GWP_ASAN=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_XRAY=OFF", configure.command)
 
     def test_musl_libcxx_runtime_flags_are_emitted(self) -> None:
         plan = build_plan(
@@ -108,6 +117,15 @@ class PlannerTests(unittest.TestCase):
         self.assertIn("-DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON", configure.command)
         self.assertIn("-DCOMPILER_RT_USE_LLVM_UNWINDER=ON", configure.command)
         self.assertIn("-DLIBUNWIND_USE_COMPILER_RT=ON", configure.command)
+        self.assertIn("-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_SANITIZERS=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_MEMPROF=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_CTX_PROFILE=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_PROFILE=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_LIBFUZZER=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_ORC=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_GWP_ASAN=OFF", configure.command)
+        self.assertIn("-DCOMPILER_RT_BUILD_XRAY=OFF", configure.command)
 
     def test_llvm_libc_profile_enables_full_build(self) -> None:
         plan = build_plan(
