@@ -402,6 +402,14 @@ def _libcxx_runtime_defines() -> dict[str, str]:
         "COMPILER_RT_USE_LLVM_UNWINDER": "ON",
         "LIBUNWIND_USE_COMPILER_RT": "ON",
         "COMPILER_RT_DEFAULT_TARGET_ONLY": "ON",
+        "COMPILER_RT_BUILD_SANITIZERS": "OFF",
+        "COMPILER_RT_BUILD_MEMPROF": "OFF",
+        "COMPILER_RT_BUILD_CTX_PROFILE": "OFF",
+        "COMPILER_RT_BUILD_PROFILE": "OFF",
+        "COMPILER_RT_BUILD_LIBFUZZER": "OFF",
+        "COMPILER_RT_BUILD_ORC": "OFF",
+        "COMPILER_RT_BUILD_GWP_ASAN": "OFF",
+        "COMPILER_RT_BUILD_XRAY": "OFF",
     }
 
 
